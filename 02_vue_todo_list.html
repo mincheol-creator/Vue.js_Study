@@ -14,22 +14,40 @@
     <div id="app">
       {{name}}
       <h1>To do</h1>
+      <select v-model="status">
+        <option value="showAll">모두보기</option>
+        <option value="showCompleted">완료된 것만 보기</option>
+        <option value="showIncomplete">미완료 된 것만 보기</option>
+      </select>
       <input v-on:keypress.enter="createTodo" v-model="newInput" type="text" />
       <button v-on:click="createTodo">추가</button>
       <ul>
-        <li v-bind:class="{completed : todo.isCompleted}" v-for="todo in todos">
+        <li
+          v-bind:class="{completed : todo.isCompleted}"
+          v-for="todo in todosByStatus"
+        >
           <input v-model="todo.isCompleted" type="checkbox" />
           {{todo.content}}
         </li>
         <!--         <li v-else>[완료]</li> -->
       </ul>
+      <button v-on:click="clearCompleted">완료된 일들 지우기</button>
+
+      <h1>computed vs Method 비교</h1>
+      <div v-if="visible">
+        <p>computed : {{ computedDate }}</p>
+        <p>method : {{ methodDate() }}</p>
+      </div>
+      <button v-on:click="visible = !visible">리로드</button>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script>
       new Vue({
         el: "#app",
         data: {
+          visible: true,
           name: "MC",
+          status: "showAll", //showCompleted, showIncomplete
           newInput: "",
           todos: [
             { content: "Vue JS 복습", isCompleted: false },
@@ -38,13 +56,48 @@
             { content: "Node JS 공부하기", isCompleted: false },
           ],
         },
+        computed: {
+          //데이터가 저장되고
+          computedDate() {
+            return new Date();
+          },
+          todosByStatus() {
+            // status = 'showAll'
+
+            // status = 'showCompleted'
+            if (this.status === "showCompleted") {
+              return this.todos.filter((todo) => todo.isCompleted);
+            }
+            if (this.status === "showIncomplete") {
+              return this.todos.filter((todo) => !todo.isCompleted);
+            }
+            return this.todos;
+          },
+        },
         methods: {
+          //데이터를 계속 새로 불러온다
+          methodDate() {
+            return new Date();
+          },
           createTodo() {
-            this.todos.push({
-              content: this.newInput,
-              isCompleted: false,
+            //입력값이 있을 때만,
+            if (this.newInput) {
+              this.todos.push({
+                content: this.newInput,
+                isCompleted: false,
+              });
+              this.newInput = "";
+            } else {
+              alert("글 작성해야함");
+            }
+          },
+          clearCompleted() {
+            //forEach, map, reduce, some
+            //배열을 한번씩 순회하며 무언가를 하는거
+            //무언가 => 함수(콜백)
+            this.todos = this.todos.filter((todo) => {
+              return !todo.isCompleted;
             });
-            this.newInput = "";
           },
         },
       });
